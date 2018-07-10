@@ -1,6 +1,10 @@
 import React, { Component } from 'react';
 
-import { Login, AUTH_KEY } from './login/Login.js';
+import { Login } from './account/login/Login.component.js';
+import { Logout } from './account/logout/Logout.component.js';
+
+import { AUTH_KEY } from './account/Account.constants';
+
 import './App.css';
 
 class App extends Component {
@@ -9,8 +13,8 @@ class App extends Component {
       return (
         <div className="UI-app">
           <header className="UI-app-header">
-            <h1 className="UI-app-title">Welcome.</h1>
           </header>
+            <Logout></Logout>
         </div>
       );
     } else {
@@ -33,7 +37,7 @@ class App extends Component {
 
     if (result['token_json']) {
       localStorage.setItem(AUTH_KEY, result['token_json']);
-      let here = window.location.href.split('?')[0];
+      let here = window.location.origin;
       window.location.replace(here);
     }
 
