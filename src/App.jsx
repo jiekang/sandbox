@@ -4,8 +4,6 @@ import Loadable from 'react-loadable';
 import { Login } from './account/login/Login.component';
 import { isLoggedIn } from './account/Account.service';
 
-import './App.css';
-
 function Loading(props) {
   if (props.pastDelay) {
     return <div>Loading</div>;
