@@ -8,18 +8,18 @@ export class Login extends Component {
 
   constructor(props) {
     super(props);
-    this.onClick = this.onClick.bind(this);
+    this.login = this.login.bind(this);
   }
 
   render() {
       return (
         <div className="UI-login">
-          <button className="UI-login-button" onClick={this.onClick}>Log In</button>
+          <button className="UI-login-button" onClick={this.login}>Log In</button>
         </div>
       )
   }
 
-  onClick() {
+  login() {
     let here = window.location.href;
     window.location.replace(AUTH_LOGIN_URL + '?redirect=' + encodeURIComponent(here));
   }
