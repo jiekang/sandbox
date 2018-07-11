@@ -13,17 +13,13 @@ class App extends Component {
       return (
         <div className="UI-app">
           <header className="UI-app-header">
-            <h1>
-              Welcome to another React Application!
-            </h1>
+            <h1>Welcome to another React Application!</h1>
           </header>
-          <Logout></Logout>
+          <Logout />
         </div>
       );
     } else {
-      return (
-        <Login></Login>
-      )
+      return <Login />;
     }
   }
 

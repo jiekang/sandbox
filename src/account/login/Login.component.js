@@ -5,22 +5,25 @@ import { AUTH_LOGIN_URL } from '../Account.service';
 import './Login.css';
 
 export class Login extends Component {
-
   constructor(props) {
     super(props);
     this.login = this.login.bind(this);
   }
 
   render() {
-      return (
-        <div className="UI-login">
-          <button className="UI-login-button" onClick={this.login}>Log In</button>
-        </div>
-      )
+    return (
+      <div className="UI-login">
+        <button className="UI-login-button" onClick={this.login}>
+          Log In
+        </button>
+      </div>
+    );
   }
 
   login() {
     let here = window.location.href;
-    window.location.replace(AUTH_LOGIN_URL + '?redirect=' + encodeURIComponent(here));
+    window.location.replace(
+      AUTH_LOGIN_URL + '?redirect=' + encodeURIComponent(here)
+    );
   }
 }
