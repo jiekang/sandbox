@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import { Login } from './account/login/Login.component.js';
 import { Logout } from './account/logout/Logout.component.js';
 
-import { AUTH_KEY } from './account/Account.constants';
+import { AUTH_KEY } from './account/Account.service';
 
 import './App.css';
 
@@ -13,8 +13,11 @@ class App extends Component {
       return (
         <div className="UI-app">
           <header className="UI-app-header">
+            <h1>
+              Welcome to another React Application!
+            </h1>
           </header>
-            <Logout></Logout>
+          <Logout></Logout>
         </div>
       );
     } else {

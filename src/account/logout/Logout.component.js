@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { AUTH_KEY, AUTH_LOGOUT_URL } from '../Account.constants';
+import { AUTH_KEY, AUTH_LOGOUT_URL } from '../Account.service';
 
 import './Logout.css';
 
