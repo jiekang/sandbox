@@ -1,46 +1,32 @@
 import React, { Component } from 'react';
+import Loadable from 'react-loadable';
 
-import { Login } from './account/login/Login.component.js';
-import { Logout } from './account/logout/Logout.component.js';
-
-import { AUTH_KEY } from './account/Account.service';
+import { Login } from './account/login/Login.component';
+import { isLoggedIn } from './account/Account.service';
+// import { Overview } from './overview/Overview.component';
 
 import './App.css';
 
+function Loading(props) {
+  if (props.pastDelay) {
+    return <div>Loading</div>;
+  } else {
+    return null;
+  }
+}
+
+const LoadableOverview = Loadable({
+  loader: () => import('./overview/Overview.component'),
+  loading: Loading
+});
+
 class App extends Component {
   render() {
-    if (this.login()) {
-      return (
-        <div className="UI-app">
-          <header className="UI-app-header">
-            <h1>Welcome to another React Application!</h1>
-          </header>
-          <Logout />
-        </div>
-      );
+    if (isLoggedIn()) {
+      return <LoadableOverview />;
     } else {
       return <Login />;
     }
-  }
-
-  login() {
-    if (localStorage.getItem(AUTH_KEY)) {
-      return true;
-    }
-    let query = window.location.search.substr(1);
-    let result = {};
-    query.split('&').forEach(function(part) {
-      let item = part.split('=');
-      result[item[0]] = decodeURIComponent(item[1]);
-    });
-
-    if (result['token_json']) {
-      localStorage.setItem(AUTH_KEY, result['token_json']);
-      let here = window.location.origin;
-      window.location.replace(here);
-    }
-
-    return false;
   }
 }
 
