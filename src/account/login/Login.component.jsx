@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { AUTH_LOGIN_URL } from '../Account.service';
+import { AUTH_LOGIN_URL } from '../../api/auth/Account.service';
 
 import './Login.css';
 

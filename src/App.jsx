@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import Loadable from 'react-loadable';
 
+import { isLoggedIn } from './api/auth/Account.service';
 import { Login } from './account/login/Login.component';
-import { isLoggedIn } from './account/Account.service';
 
 function Loading(props) {
   if (props.pastDelay) {

@@ -1,11 +1,11 @@
-export const AUTH_TOKEN_KEY = 'auth_token';
-export const USER_CONTEXT_KEY = 'user_context';
-
 export const AUTH_URL = 'https://auth.openshift.io/api';
 
 export const AUTH_LOGIN_URL = AUTH_URL + '/login';
 export const AUTH_LOGOUT_URL = AUTH_URL + '/logout';
 export const AUTH_USER_URL = AUTH_URL + '/user';
+
+export const AUTH_TOKEN_KEY = 'auth_token';
+export const USER_CONTEXT_KEY = 'user_context';
 
 export function getAccessToken() {
   let jwtToken = JSON.parse(localStorage.getItem(AUTH_TOKEN_KEY));

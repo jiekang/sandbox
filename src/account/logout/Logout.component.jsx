@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
 
-import { AUTH_TOKEN_KEY, AUTH_LOGOUT_URL } from '../Account.service';
+import {
+  AUTH_TOKEN_KEY,
+  AUTH_LOGOUT_URL
+} from '../../api/auth/Account.service';
 
 import './Logout.css';
 

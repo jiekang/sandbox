@@ -1,6 +1,7 @@
-import { getAccessToken, getUsername } from '../../account/Account.service';
+import { getAccessToken, getUsername } from '../auth/Account.service';
 
 export const WIT_URL = 'https://api.openshift.io/api';
+
 export const SPACES_URL = WIT_URL + '/namedspaces';
 
 export function fetchSpaces() {
