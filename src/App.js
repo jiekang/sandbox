@@ -3,7 +3,6 @@ import Loadable from 'react-loadable';
 
 import { Login } from './account/login/Login.component';
 import { isLoggedIn } from './account/Account.service';
-// import { Overview } from './overview/Overview.component';
 
 import './App.css';
 
