@@ -4,11 +4,11 @@ export const WIT_URL = 'https://api.openshift.io/api';
 
 export const SPACES_URL = WIT_URL + '/namedspaces';
 
-export function fetchSpaces() {
-  return fetchSpacesByUsername(getUsername());
+export function getSpaces() {
+  return getSpacesByUsername(getUsername());
 }
 
-export function fetchSpacesByUsername(userName) {
+export function getSpacesByUsername(userName) {
   let url = SPACES_URL + '/' + encodeURIComponent(userName);
   let accessToken = getAccessToken();
   if (accessToken != null) {

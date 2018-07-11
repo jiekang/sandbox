@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 
 import { Logout } from '../account/logout/Logout.component';
-import { SpaceWidget } from '../space/space-widget/Space.widget';
+import SpaceContainer from '../space/space-widget/Space.container';
 
 import './Overview.css';
 export default class Overview extends Component {
@@ -14,7 +14,7 @@ export default class Overview extends Component {
           </h1>
           <Logout />
         </header>
-        <SpaceWidget />
+        <SpaceContainer />
       </div>
     );
   }
