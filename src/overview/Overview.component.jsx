@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 
-import { Logout } from '../account/logout/Logout.component';
 import SpaceContainer from '../space/space-widget/Space.container';
+
+import { Logout } from '../account/logout/Logout.component';
 
 import './Overview.css';
 export default class Overview extends Component {

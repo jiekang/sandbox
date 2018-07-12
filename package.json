@@ -105,5 +105,13 @@
       "prettier --single-quote --write",
       "git add"
     ]
+  },
+  "devDependencies": {
+    "@types/react": "^16.4.6",
+    "@types/react-dom": "^16.0.6",
+    "@types/react-redux": "^6.0.4",
+    "awesome-typescript-loader": "^4.0.0",
+    "source-map-loader": "^0.2.3",
+    "typescript": "^2.9.2"
   }
 }

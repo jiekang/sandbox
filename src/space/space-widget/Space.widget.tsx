@@ -1,16 +1,24 @@
-import React, { Component } from 'react';
+import * as React from "react";
 
 import { fetchSpaces } from '../../redux/actions';
 
+import { Space } from '../Space.types';
+
 import './Space.css';
 
-export class SpaceWidget extends Component {
+
+export interface SpaceWidgetProps {
+  dispatch: any,
+  spaces: Space[]
+}
+
+export class SpaceWidget extends React.Component<SpaceWidgetProps> {
   componentDidMount() {
     this.props.dispatch(fetchSpaces());
   }
 
   render() {
-    const spaceItems = this.props.spaces.map(space => {
+    const spaceItems = this.props.spaces.map((space: Space) => {
       return <li key={space.id}>{space.attributes.name}</li>;
     });
     return (

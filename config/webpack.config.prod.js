@@ -88,7 +88,7 @@ module.exports = {
     // https://github.com/facebookincubator/create-react-app/issues/290
     // `web` extension prefixes have been added for better support
     // for React Native Web.
-    extensions: ['.web.js', '.mjs', '.js', '.json', '.web.jsx', '.jsx'],
+    extensions: ['.web.js', '.mjs', '.js', '.json', '.web.jsx', '.jsx', '.ts', '.tsx'],
     alias: {
       
       // Support React Native Web
@@ -211,6 +211,15 @@ module.exports = {
               )
             ),
             // Note: this won't work without `new ExtractTextPlugin()` in `plugins`.
+          },
+          { 
+            test: /\.tsx?$/,
+            loader: "awesome-typescript-loader"
+          },
+          { 
+            enforce: "pre",
+            test: /\.js$/,
+            loader: "source-map-loader"
           },
           // "file" loader makes sure assets end up in the `build` folder.
           // When you `import` an asset, you get its filename.
