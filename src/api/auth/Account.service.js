@@ -7,6 +7,19 @@ export const AUTH_USER_URL = AUTH_URL + '/user';
 export const AUTH_TOKEN_KEY = 'auth_token';
 export const USER_CONTEXT_KEY = 'user_context';
 
+export function isAccessTokenValid() {
+  let token = localStorage.getItem(AUTH_TOKEN_KEY);
+  if (!token) {
+    return false;
+  }
+  try {
+    JSON.parse(token);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 export function getAccessToken() {
   let jwtToken = JSON.parse(localStorage.getItem(AUTH_TOKEN_KEY));
   if (jwtToken['access_token']) {
@@ -44,7 +57,7 @@ export function fetchUserContext() {
 }
 
 export function isLoggedIn() {
-  if (localStorage.getItem(AUTH_TOKEN_KEY)) {
+  if (isAccessTokenValid()) {
     if (!localStorage.getItem(USER_CONTEXT_KEY)) {
       fetchUserContext();
     }
