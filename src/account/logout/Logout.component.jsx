@@ -5,7 +5,7 @@ import {
   AUTH_LOGOUT_URL
 } from '../../api/auth/Account.service';
 
-import './Logout.css';
+import * as styles from './Logout.css';
 
 export class Logout extends Component {
   constructor(props) {
@@ -15,7 +15,7 @@ export class Logout extends Component {
 
   render() {
     return (
-      <div className="UI-logout">
+      <div className={styles.logout}>
         <button className="UI-logout-button" onClick={this.logout}>
           Log Out
         </button>

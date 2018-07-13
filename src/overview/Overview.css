@@ -1,4 +1,4 @@
-.UI-overview-header {
+.overview-header {
   text-align: center;
   background-color: #222;
   height: 150px;
@@ -6,10 +6,10 @@
   color: white;
 }
 
-.UI-overview-title {
+.overview-title {
   font-size: 1.5em;
 }
 
-.UI-overview-intro {
+.overview-intro {
   font-size: large;
 }

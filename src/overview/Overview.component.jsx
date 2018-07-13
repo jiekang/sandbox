@@ -4,13 +4,14 @@ import SpaceContainer from '../space/space-widget/Space.container';
 
 import { Logout } from '../account/logout/Logout.component';
 
-import './Overview.css';
+import * as styles from './Overview.css';
+
 export default class Overview extends Component {
   render() {
     return (
       <div>
-        <header className="UI-overview-header">
-          <h1 className="UI-overview-title">
+        <header className={styles.overviewHeader}>
+          <h1 className={styles.overviewTitle}>
             Welcome to another React Application!
           </h1>
           <Logout />
