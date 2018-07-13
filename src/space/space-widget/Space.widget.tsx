@@ -5,8 +5,7 @@ import { fetchSpaces } from '../../redux/actions';
 
 import { Space } from '../Space.types';
 
-import './Space.css';
-
+import * as styles from './Space.css';
 
 export interface SpaceWidgetProps {
   dispatch: Dispatch<any>,
@@ -14,7 +13,7 @@ export interface SpaceWidgetProps {
 }
 
 const SpaceItem = (space: Space): React.ReactNode => (
-  <li key={space.id}>{space.attributes.name}</li>
+  <li className={styles.listItem} key={space.id}>{space.attributes.name}</li>
 );
 
 export class SpaceWidget extends React.Component<SpaceWidgetProps> {
@@ -24,7 +23,7 @@ export class SpaceWidget extends React.Component<SpaceWidgetProps> {
 
   render(): React.ReactNode {
     return (
-      <div className="UI-space-widget">
+      <div className={styles.container}>
         <h1>My Spaces</h1>
         <ul>
           {this.props.spaces.map(SpaceItem)}

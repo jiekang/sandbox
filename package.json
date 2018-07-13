@@ -112,6 +112,7 @@
     "@types/react-redux": "^6.0.4",
     "awesome-typescript-loader": "^4.0.0",
     "source-map-loader": "^0.2.3",
-    "typescript": "^2.9.2"
+    "typescript": "^2.9.2",
+    "typings-for-css-modules-loader": "^1.7.0"
   }
 }

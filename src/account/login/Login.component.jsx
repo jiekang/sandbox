@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 
 import { AUTH_LOGIN_URL } from '../../api/auth/Account.service';
 
-import './Login.css';
+import * as styles from './Login.css';
 
 export class Login extends Component {
   constructor(props) {
@@ -12,7 +12,7 @@ export class Login extends Component {
 
   render() {
     return (
-      <div className="UI-login">
+      <div className={styles.login}>
         <button className="UI-login-button" onClick={this.login}>
           Log In
         </button>
