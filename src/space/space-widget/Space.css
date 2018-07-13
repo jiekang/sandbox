@@ -1,3 +1,8 @@
 .container {
   padding: 10px;
 }
+
+.list-item {
+  list-style-type: none;
+  padding: 6px;
+}

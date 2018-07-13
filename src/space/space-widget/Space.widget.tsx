@@ -13,7 +13,7 @@ export interface SpaceWidgetProps {
 }
 
 const SpaceItem = (space: Space): React.ReactNode => (
-  <li key={space.id}>{space.attributes.name}</li>
+  <li className={styles.listItem} key={space.id}>{space.attributes.name}</li>
 );
 
 export class SpaceWidget extends React.Component<SpaceWidgetProps> {
