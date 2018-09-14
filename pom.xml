@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.redhat.jmc.prometheus</groupId>
+    <artifactId>jmc-prometheus-prototype</artifactId>
+    <packaging>jar</packaging>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <name>JMC Prometheus Prototype</name>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+    <java.version>11</java.version>
+    <JDK_HOME>/home/jkang/Work/code/src/hg.openjdk.java.net/jdk/jdk/build/linux-x86_64-normal-server-release/jdk</JDK_HOME>
+  </properties>
+
+  <build>
+      <pluginManagement>
+          <plugins>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-compiler-plugin</artifactId>
+                  <version>3.8.0</version>
+                  <configuration>
+                      <fork>true</fork>
+                      <meminitial>128m</meminitial>
+                      <maxmem>1024m</maxmem>
+                      <source>${java.version}</source>
+                      <target>${java.version}</target>
+                      <executable>${JDK_HOME}/bin/javac</executable>
+                  </configuration>
+              </plugin>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-jar-plugin</artifactId>
+                  <version>3.1.0</version>
+              </plugin>
+          </plugins>
+      </pluginManagement>
+  </build>
+
+  <dependencies>
+      <dependency>
+      <groupId>org.openjdk.jmc</groupId>
+      <artifactId>flightrecorder</artifactId>
+      <version>7.0.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openjdk.jmc</groupId>
+      <artifactId>common</artifactId>
+      <version>7.0.0-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
+</project>
