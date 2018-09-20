@@ -1,4 +1,4 @@
-package com.redhat.jmc.prometheus;
+package com.redhat.jmc.grafana;
 
 import static org.openjdk.jmc.common.unit.UnitLookup.NUMBER;
 
@@ -17,7 +17,6 @@ public class CustomEventRecording {
     public static final IAttribute<IQuantity> WORK_LEFT = Attribute.attr("workLeft", "MCCustomEventDemo$CustomEvent" ,NUMBER);
     
     public static void main(String[] args) throws Exception {
-       
         IItemCollection events = JfrLoaderToolkit.loadEvents(new File(args[0]));
         IQuantity aggregate = events.apply(ItemFilters.type("MCCustomEventDemo$CustomEvent")).
                 getAggregate(Aggregators.avg(WORK_LEFT));
