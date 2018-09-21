@@ -22,7 +22,6 @@
 
     <java.version>1.8</java.version>
     <vertx.version>3.5.3</vertx.version>
-    <!-- <JDK_HOME>/home/jkang/Work/code/src/hg.openjdk.java.net/jdk/jdk/build/linux-x86_64-normal-server-release/jdk</JDK_HOME> -->
     <exec.mainClass>com.redhat.jmc.grafana.MainVerticle</exec.mainClass>
   </properties>
 
@@ -39,7 +38,6 @@
             <maxmem>1024m</maxmem>
             <source>${java.version}</source>
             <target>${java.version}</target>
-            <executable>${JDK_HOME}/bin/javac</executable>
           </configuration>
         </plugin>
         <plugin>
