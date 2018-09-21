@@ -24,6 +24,7 @@ import org.openjdk.jmc.common.item.Attribute;
 import org.openjdk.jmc.common.item.IAccessorKey;
 import org.openjdk.jmc.common.item.IAttribute;
 import org.openjdk.jmc.common.unit.IQuantity;
+import org.openjdk.jmc.flightrecorder.JfrAttributes;
 import org.openjdk.jmc.flightrecorder.JfrLoaderToolkit;
 
 public class MainVerticle {
@@ -43,9 +44,16 @@ public class MainVerticle {
       for (IItemIterable itemIterable : customEvents) {
         IType<IItem> type = itemIterable.getType();
         IMemberAccessor<IQuantity, IItem> workAccessor = WORK_LEFT.getAccessor(type);
+        IMemberAccessor<IQuantity, IItem> startTimeAccessor = JfrAttributes.START_TIME.getAccessor(type);
+        IMemberAccessor<IQuantity, IItem> durationAccessor = JfrAttributes.DURATION.getAccessor(type);
+
+        // Map m = type.getAccessorKeys();
+        // for(Object key: m.keySet()) {
+        //   System.out.println("KEY " + key);
+        // }
 
         for (IItem item : itemIterable) {
-          System.out.println("ITEM: " + workAccessor.getMember(item).longValue());
+          System.out.println("ITEM: " +  startTimeAccessor.getMember(item).longValue() + " " + durationAccessor.getMember(item).longValue() + " " +workAccessor.getMember(item).longValue());
         }
       }
 
