@@ -4,7 +4,6 @@ import static org.openjdk.jmc.common.unit.UnitLookup.NUMBER;
 
 import java.io.File;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
@@ -36,13 +35,11 @@ public class MainVerticle {
   public static void main(String[] args) {
     try {
       IItemCollection events = JfrLoaderToolkit.loadEvents(new File(args[0]));
+      IItemCollection customEvents = events.apply(ItemFilters.type("MCCustomEventDemo$CustomEvent"));
 
       Vertx instance = Vertx.vertx();
       HttpServer server = instance.createHttpServer();
       Router router = Router.router(instance);
-
-
-      IItemCollection customEvents = events.apply(ItemFilters.type("MCCustomEventDemo$CustomEvent"));
 
       router.route().path("/").handler(routingContext -> {
         HttpServerResponse response = routingContext.response();
