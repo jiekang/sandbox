@@ -1,4 +1,4 @@
-package com.redhat.jmc.prometheus;
+package com.redhat.jmc.grafana;
 
 import java.lang.Thread;
 import jdk.jfr.Label;
