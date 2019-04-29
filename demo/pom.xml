@@ -15,4 +15,58 @@
 
   <packaging>jar</packaging>
   <name>JMC Grafana Prototype Demo</name>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+    <java.version>11</java.version>
+  </properties>
+
+  <build>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.8.0</version>
+          <configuration>
+            <fork>true</fork>
+            <meminitial>128m</meminitial>
+            <maxmem>1024m</maxmem>
+            <release>11</release>
+            <executable>/usr/lib/jvm/jre-11/bin/javac</executable>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>3.1.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>2.3</version>
+          <executions>
+            <execution>
+              <phase>package</phase>
+              <goals>
+                <goal>shade</goal>
+              </goals>
+              <configuration>
+                <transformers>
+                  <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                    <manifestEntries>
+                      <Main-Class>com.redhat.jmc.grafana.MCCustomEventDemo</Main-Class>
+                    </manifestEntries>
+                  </transformer>
+                </transformers>
+                <artifactSet>
+                </artifactSet>
+                <outputFile>${project.build.directory}/${project.artifactId}-${project.version}-fat.jar</outputFile>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+  </build>
 </project>

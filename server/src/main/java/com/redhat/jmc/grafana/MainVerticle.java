@@ -73,6 +73,7 @@ public class MainVerticle {
 
       server.requestHandler(router::accept);
 
+      System.out.println("Server listening on 0.0.0.0:8080");
       server.listen(8080);
     } catch (Exception e) {
       e.printStackTrace();
