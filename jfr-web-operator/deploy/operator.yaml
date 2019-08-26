@@ -16,7 +16,7 @@ spec:
       containers:
         - name: jfr-web-operator
           # Replace this with the built image name
-          image: REPLACE_IMAGE
+          image: quay.io/jiekang/jfr-web-operator:0.0.1
           command:
           - jfr-web-operator
           imagePullPolicy: Always
