@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jfr-web-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: jfr-web-operator
+  template:
+    metadata:
+      labels:
+        name: jfr-web-operator
+    spec:
+      serviceAccountName: jfr-web-operator
+      containers:
+        - name: jfr-web-operator
+          # Replace this with the built image name
+          image: REPLACE_IMAGE
+          command:
+          - jfr-web-operator
+          imagePullPolicy: Always
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "jfr-web-operator"
