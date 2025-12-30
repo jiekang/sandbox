@@ -12,6 +12,7 @@ const PIPELINE_JOB_PATH = process.env.PIPELINE_JOB_PATH || 'job/build-scripts/jo
 export const fetchJobInfo = async () => {
   try {
     const url = `${JENKINS_BASE_URL}/${PIPELINE_JOB_PATH}/api/json?tree=name,url,lastBuild[number,url,result,timestamp,duration,parameters[value,name]]`;
+    console.log(`[HTTP Request] GET ${url}`);
     const response = await axios.get(url, {
       timeout: 30000,
       headers: {
@@ -31,6 +32,7 @@ export const fetchJobInfo = async () => {
 export const fetchBuildInfo = async (buildNumber) => {
   try {
     const url = `${JENKINS_BASE_URL}/${PIPELINE_JOB_PATH}/${buildNumber}/api/json?tree=number,url,result,timestamp,duration,parameters[value,name],actions[*]`;
+    console.log(`[HTTP Request] GET ${url}`);
     const response = await axios.get(url, {
       timeout: 30000,
       headers: {
@@ -50,6 +52,7 @@ export const fetchBuildInfo = async (buildNumber) => {
 export const fetchRecentBuilds = async (limit = 10) => {
   try {
     const url = `${JENKINS_BASE_URL}/${PIPELINE_JOB_PATH}/api/json?tree=builds[number,url,result,timestamp,duration,parameters[value,name]]{0,${limit}}`;
+    console.log(`[HTTP Request] GET ${url}`);
     const response = await axios.get(url, {
       timeout: 30000,
       headers: {
