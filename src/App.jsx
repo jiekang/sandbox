@@ -1,7 +1,10 @@
+import JobList from './components/JobList'
+import './App.css'
+
 function App() {
   return (
     <div className="App">
-      {/* Blank homepage */}
+      <JobList />
     </div>
   )
 }
