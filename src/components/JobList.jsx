@@ -10,11 +10,15 @@ function JobList() {
     status: '',
     limit: 50,
   });
+  const [sort, setSort] = useState({
+    column: 'buildNumber',
+    direction: 'desc', // 'asc' or 'desc'
+  });
 
   useEffect(() => {
     fetchJobs();
     fetchStats();
-  }, [filter]);
+  }, [filter, sort]);
 
   const fetchJobs = async () => {
     try {
@@ -22,7 +26,10 @@ function JobList() {
       const params = new URLSearchParams();
       if (filter.status) params.append('status', filter.status);
       params.append('limit', filter.limit);
-      params.append('sort', '-fetchedAt');
+      
+      // Build sort parameter: prefix with '-' for descending
+      const sortParam = sort.direction === 'desc' ? `-${sort.column}` : sort.column;
+      params.append('sort', sortParam);
 
       const response = await fetch(`/api/jobs?${params.toString()}`);
       const data = await response.json();
@@ -102,6 +109,35 @@ function JobList() {
     } catch (err) {
       alert(`Error: ${err.message}`);
     }
+  };
+
+  const handleSort = (column) => {
+    setSort((prevSort) => {
+      if (prevSort.column === column) {
+        // Toggle direction if clicking the same column
+        return {
+          column,
+          direction: prevSort.direction === 'asc' ? 'desc' : 'asc',
+        };
+      } else {
+        // New column, default to descending
+        return {
+          column,
+          direction: 'desc',
+        };
+      }
+    });
+  };
+
+  const getSortIcon = (column) => {
+    if (sort.column !== column) {
+      return <span className="sort-icon" aria-label="Not sorted">↕</span>;
+    }
+    return sort.direction === 'asc' ? (
+      <span className="sort-icon sort-icon-active" aria-label="Sorted ascending">↑</span>
+    ) : (
+      <span className="sort-icon sort-icon-active" aria-label="Sorted descending">↓</span>
+    );
   };
 
   if (loading && jobs.length === 0) {
@@ -195,11 +231,41 @@ function JobList() {
         <table>
           <thead>
             <tr>
-              <th>Build #</th>
-              <th>Status</th>
-              <th>Duration</th>
-              <th>Timestamp</th>
-              <th>Fetched At</th>
+              <th 
+                className="sortable" 
+                onClick={() => handleSort('buildNumber')}
+                title="Click to sort by Build Number"
+              >
+                Build # {getSortIcon('buildNumber')}
+              </th>
+              <th 
+                className="sortable" 
+                onClick={() => handleSort('status')}
+                title="Click to sort by Status"
+              >
+                Status {getSortIcon('status')}
+              </th>
+              <th 
+                className="sortable" 
+                onClick={() => handleSort('duration')}
+                title="Click to sort by Duration"
+              >
+                Duration {getSortIcon('duration')}
+              </th>
+              <th 
+                className="sortable" 
+                onClick={() => handleSort('timestamp')}
+                title="Click to sort by Timestamp"
+              >
+                Timestamp {getSortIcon('timestamp')}
+              </th>
+              <th 
+                className="sortable" 
+                onClick={() => handleSort('fetchedAt')}
+                title="Click to sort by Fetched At"
+              >
+                Fetched At {getSortIcon('fetchedAt')}
+              </th>
               <th>Actions</th>
             </tr>
           </thead>

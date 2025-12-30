@@ -135,6 +135,43 @@
   border-bottom: 2px solid #e5e7eb;
 }
 
+.jobs-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  transition: background-color 0.2s;
+}
+
+.jobs-table th.sortable:hover {
+  background-color: #f3f4f6;
+}
+
+.jobs-table th.sortable:active {
+  background-color: #e5e7eb;
+}
+
+.sort-icon {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  vertical-align: middle;
+  transition: color 0.2s;
+}
+
+.sort-icon-active {
+  color: #3b82f6;
+  font-weight: bold;
+}
+
+.jobs-table th.sortable:hover .sort-icon {
+  color: #6b7280;
+}
+
+.jobs-table th.sortable:hover .sort-icon-active {
+  color: #2563eb;
+}
+
 .jobs-table td {
   padding: 1rem;
   border-bottom: 1px solid #e5e7eb;
