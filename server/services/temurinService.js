@@ -1,6 +1,6 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
-import { logHttpRequest } from '../utils/logger.js';
+import { logHttpRequest, log } from '../utils/logger.js';
 
 dotenv.config();
 
@@ -327,7 +327,7 @@ export const identifyTestTypeFromTestJob = (testJobName) => {
   
   // Map test job patterns to test types
   const testTypeMap = {
-    'smoke': 'smoke test',
+    'smoke': 'smoketest',
     'sanity.openjdk': 'sanity.openjdk',
     'sanity.system': 'sanity.system',
     'extended.system': 'extended.system',
@@ -345,7 +345,7 @@ export const identifyTestTypeFromTestJob = (testJobName) => {
   };
 
   for (const [pattern, testType] of Object.entries(testTypeMap)) {
-    if (lowerName.includes(pattern.replace('.', '')) || lowerName.includes(pattern.replace('.', '_'))) {
+    if (lowerName.includes(pattern) || lowerName.includes(pattern.replace('.', '')) || lowerName.includes(pattern.replace('.', '_'))) {
       return testType;
     }
   }
@@ -358,19 +358,30 @@ export const identifyTestTypeFromTestJob = (testJobName) => {
  * Child jobs are already fetched with test data, so we just need to identify the test type
  */
 export const extractTestResults = async (childJobs) => {
+  log(`[Test Results] Extracting test results from ${childJobs.length} child jobs`);
   const testResults = [];
+  const skippedJobs = [];
 
   for (const childJob of childJobs) {
     // Identify test type from the test job name
     const testType = identifyTestTypeFromTestJob(childJob.jobName);
     if (!testType) {
       // Skip if we can't identify the test type
+      skippedJobs.push(childJob.jobName);
+      log(`[Test Results] Skipped ${childJob.jobName} - could not identify test type`);
       continue;
     }
 
     // Extract test report from the raw data if available
     // The testReport contains: totalCount, skipCount, failCount, passCount, suites
     const testReport = childJob.rawData?.testReport || null;
+    
+    const testCounts = testReport ? {
+      total: testReport.totalCount || 0,
+      passed: testReport.passCount || 0,
+      failed: testReport.failCount || 0,
+      skipped: testReport.skipCount || 0,
+    } : null;
 
     testResults.push({
       testType,
@@ -385,6 +396,13 @@ export const extractTestResults = async (childJobs) => {
       testResults: testReport,
       rawData: childJob.rawData,
     });
+
+    log(`[Test Results] Extracted ${testType} from ${childJob.jobName} #${childJob.buildNumber} (${childJob.status})${testCounts ? ` - ${testCounts.passed}/${testCounts.total} passed, ${testCounts.failed} failed` : ' - no test report'}`);
+  }
+
+  log(`[Test Results] Extraction complete: ${testResults.length} test results extracted, ${skippedJobs.length} jobs skipped`);
+  if (skippedJobs.length > 0) {
+    log(`[Test Results] Skipped jobs: ${skippedJobs.join(', ')}`);
   }
 
   return testResults;
@@ -420,10 +438,14 @@ export const fetchTemurinJobData = async (job, allJdk21uJobs = null) => {
     const { platform, architecture } = parseJobName(job.name);
     const mainBuild = job.lastBuild;
 
+    log(`[Temurin Job] Processing ${job.name} build #${mainBuild.number} (${platform}/${architecture})`);
+
     // Fetch child jobs (pass all jobs to search for related test jobs)
     const childJobs = await fetchChildJobs(job.url, mainBuild.number, job.name, allJdk21uJobs);
+    log(`[Temurin Job] Found ${childJobs.length} child jobs for ${job.name} build #${mainBuild.number}`);
 
     // Extract test results from child jobs
+    log(`[Temurin Job] Extracting test results for ${job.name} build #${mainBuild.number}`);
     const testResults = await extractTestResults(childJobs);
 
     return {
