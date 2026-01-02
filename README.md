@@ -106,11 +106,45 @@ curl http://localhost:3001/api/jobs/stats/summary
 
 ### Frontend Development
 
-The React frontend can be run separately:
+The React frontend provides a web interface to view and interact with the build data stored in MongoDB.
 
-```bash
-npm run dev
-```
+#### Starting the Frontend
+
+1. **Ensure the backend server is running** (see [Setup](#setup) above):
+   ```bash
+   npm run server
+   ```
+
+2. **Start the frontend development server:**
+   ```bash
+   npm run dev
+   ```
+
+3. **Access the frontend:**
+   - Open your browser and navigate to: `http://localhost:5173`
+   - The Vite dev server typically runs on port 5173 by default
+   - Check the terminal output for the exact URL if different
+
+#### Frontend Features
+
+The homepage displays:
+- **Statistics Dashboard** - Total builds, success/failure counts, and last fetch time
+- **Build Data Table** - Sortable and filterable table showing:
+  - Build number
+  - Status (color-coded badges)
+  - Duration
+  - Timestamp
+  - Fetched at time
+  - Direct links to Jenkins build pages
+- **Filtering** - Filter by status and limit results
+- **Manual Fetch** - Button to trigger immediate data fetch from Jenkins
+- **Refresh** - Button to reload the current data
+
+#### Development Notes
+
+- The frontend uses Vite's proxy configuration to forward `/api` requests to the backend server (port 3001)
+- Hot module replacement (HMR) is enabled for fast development
+- Both frontend and backend can run simultaneously in separate terminals
 
 ### Project Structure
 
