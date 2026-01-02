@@ -1,5 +1,6 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
+import { logHttpRequest } from '../utils/logger.js';
 
 dotenv.config();
 
@@ -31,7 +32,7 @@ const TEST_JOB_PATTERNS = [
 export const fetchJdk21uJobs = async () => {
   try {
     const url = `${JENKINS_BASE_URL}/${JDK21U_JOB_PATH}/api/json?tree=jobs[name,url,lastBuild[number,url,result,timestamp,duration]]`;
-    console.log(`[HTTP Request] GET ${url}`);
+    logHttpRequest('GET', url);
     const response = await axios.get(url, {
       timeout: 30000,
       headers: {
@@ -75,7 +76,7 @@ export const parseJobName = (jobName) => {
 export const fetchJobBuildInfo = async (jobUrl, buildNumber) => {
   try {
     const url = `${jobUrl}${buildNumber}/api/json?tree=number,url,result,timestamp,duration,actions[*],runs[*]`;
-    console.log(`[HTTP Request] GET ${url}`);
+    logHttpRequest('GET', url);
     const response = await axios.get(url, {
       timeout: 30000,
       headers: {
@@ -95,7 +96,7 @@ export const fetchJobBuildInfo = async (jobUrl, buildNumber) => {
 export const fetchConsoleOutput = async (jobUrl, buildNumber) => {
   try {
     const url = `${jobUrl}${buildNumber}/consoleText`;
-    console.log(`[HTTP Request] GET ${url}`);
+    logHttpRequest('GET', url);
     const response = await axios.get(url, {
       timeout: 30000,
       headers: {
@@ -162,7 +163,7 @@ export const fetchTestJobData = async (testJobName, buildNumber) => {
     
     // Fetch build info with test report
     const url = `${testJobUrl}${buildNumber}/api/json?tree=number,url,result,timestamp,duration,testReport[totalCount,skipCount,failCount,passCount,suites[*]]`;
-    console.log(`[HTTP Request] GET ${url}`);
+    logHttpRequest('GET', url);
     const response = await axios.get(url, {
       timeout: 30000,
       headers: {
@@ -246,7 +247,7 @@ export const fetchChildJobs = async (jobUrl, buildNumber, mainJobName, allJdk21u
     // Fallback: Also try to get downstream projects from the job itself
     if (childJobs.length === 0) {
       const jobInfoUrl = `${jobUrl}api/json?tree=downstreamProjects[name,url,lastBuild[number,url,result,timestamp,duration]]`;
-      console.log(`[HTTP Request] GET ${jobInfoUrl}`);
+      logHttpRequest('GET', jobInfoUrl);
       const jobInfoResponse = await axios.get(jobInfoUrl, {
         timeout: 30000,
         headers: { 'Accept': 'application/json' },
@@ -303,7 +304,7 @@ export const identifyTestType = (jobName) => {
 export const fetchTestResults = async (testJobUrl, buildNumber) => {
   try {
     const url = `${testJobUrl}${buildNumber}/api/json?tree=number,url,result,timestamp,duration,actions[*],testReport[totalCount,skipCount,failCount,passCount,suites[*]]`;
-    console.log(`[HTTP Request] GET ${url}`);
+    logHttpRequest('GET', url);
     const response = await axios.get(url, {
       timeout: 30000,
       headers: {

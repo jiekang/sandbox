@@ -40,7 +40,11 @@ A Node.js API that fetches job data from OpenJDK pipelines on ci.adoptium.net ev
    JENKINS_BASE_URL=https://ci.adoptium.net
    PIPELINE_JOB_PATH=job/build-scripts/job/weekly-openjdk21-pipeline
    JDK21U_JOB_PATH=job/build-scripts/job/jobs/job/jdk21u
+   LOG_HTTP_REQUESTS=true
    ```
+   
+   **Logging Configuration:**
+   - `LOG_HTTP_REQUESTS` - Set to `false` to disable HTTP request logging (default: `true`)
 
 3. **Start MongoDB** (if running locally):
    ```bash
