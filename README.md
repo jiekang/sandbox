@@ -8,10 +8,13 @@ A Node.js API that fetches job data from OpenJDK pipelines on ci.adoptium.net ev
 ### Features
 
 - Automatically fetches job data from Jenkins CI every hour
+  - Pipeline jobs from OpenJDK build pipelines
+  - Temurin build jobs from jdk21u folder with test results
 - Stores build information in MongoDB
 - RESTful API to query stored job data
-- Manual fetch endpoint for on-demand updates
+- Manual fetch endpoints for on-demand updates
 - Statistics and summary endpoints
+- Test result tracking for temurin jobs (15 test types)
 
 ### Prerequisites
 
@@ -35,7 +38,8 @@ A Node.js API that fetches job data from OpenJDK pipelines on ci.adoptium.net ev
    MONGO_URI=mongodb://localhost:27017/openjdk_jobs
    PORT=3001
    JENKINS_BASE_URL=https://ci.adoptium.net
-   PIPELINE_JOB_PATH=job/build-scripts/job/openjdk21-pipeline
+   PIPELINE_JOB_PATH=job/build-scripts/job/weekly-openjdk21-pipeline
+   JDK21U_JOB_PATH=job/build-scripts/job/jobs/job/jdk21u
    ```
 
 3. **Start MongoDB** (if running locally):
@@ -59,7 +63,7 @@ A Node.js API that fetches job data from OpenJDK pipelines on ci.adoptium.net ev
 
 The server will:
 - Connect to MongoDB
-- Run an initial job fetch
+- Run an initial job fetch (both pipeline and temurin jobs)
 - Start the hourly scheduler (runs at the top of every hour)
 
 ### API Endpoints
@@ -85,6 +89,31 @@ The server will:
   
 - `GET /api/jobs/stats/summary` - Get summary statistics
 
+#### Temurin Jobs
+
+The API also fetches and stores temurin build jobs from the [jdk21u folder](https://ci.adoptium.net/job/build-scripts/job/jobs/job/jdk21u/), including main job status, child job statuses, and test results.
+
+- `GET /api/temurin-jobs` - Get all temurin jobs
+  - Query parameters:
+    - `platform` - Filter by platform (linux, windows, mac, etc.)
+    - `architecture` - Filter by architecture (x64, aarch64, ppc64le, etc.)
+    - `status` - Filter by main job status
+    - `mainJobName` - Filter by main job name
+    - `limit` - Number of results (default: 50)
+    - `skip` - Number of results to skip (default: 0)
+    - `sort` - Sort field (default: -fetchedAt)
+  
+- `GET /api/temurin-jobs/:id` - Get a specific temurin job by MongoDB ID
+  
+- `GET /api/temurin-jobs/job/:jobName/build/:buildNumber` - Get a temurin job by job name and build number
+  
+- `POST /api/temurin-jobs/fetch` - Manually trigger a temurin job data fetch
+  
+- `GET /api/temurin-jobs/stats/summary` - Get summary statistics for temurin jobs
+  
+- `GET /api/temurin-jobs/test-results/:testType` - Get all test results for a specific test type
+  - Test types: `smoke test`, `sanity.openjdk`, `sanity.system`, `extended.system`, `sanity.perf`, `sanity.functional`, `extended.functional`, `extended.openjdk`, `extended.perf`, `special.functional`, `special.openjdk`, `dev.functional`, `special.jck`, `sanity.jck`, `extended.jck`
+
 ### Example API Calls
 
 ```bash
@@ -102,6 +131,24 @@ curl -X POST http://localhost:3001/api/jobs/fetch
 
 # Get statistics
 curl http://localhost:3001/api/jobs/stats/summary
+
+# Get all temurin jobs
+curl http://localhost:3001/api/temurin-jobs
+
+# Get temurin jobs for Linux x64 platform
+curl http://localhost:3001/api/temurin-jobs?platform=linux&architecture=x64
+
+# Get a specific temurin job
+curl http://localhost:3001/api/temurin-jobs/job/jdk21u-linux-x64-temurin/build/123
+
+# Manually trigger temurin job fetch
+curl -X POST http://localhost:3001/api/temurin-jobs/fetch
+
+# Get temurin job statistics
+curl http://localhost:3001/api/temurin-jobs/stats/summary
+
+# Get test results for a specific test type
+curl http://localhost:3001/api/temurin-jobs/test-results/sanity.openjdk
 ```
 
 ### Frontend Development

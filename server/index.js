@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import connectDB from './config/database.js';
 import { startScheduler } from './scheduler.js';
 import jobsRouter from './routes/jobs.js';
+import temurinJobsRouter from './routes/temurinJobs.js';
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.get('/health', (req, res) => {
 
 // API Routes
 app.use('/api/jobs', jobsRouter);
+app.use('/api/temurin-jobs', temurinJobsRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -57,6 +59,7 @@ const startServer = async () => {
       console.log(`Server running on port ${PORT}`);
       console.log(`Health check: http://localhost:${PORT}/health`);
       console.log(`API base: http://localhost:${PORT}/api/jobs`);
+      console.log(`Temurin API base: http://localhost:${PORT}/api/temurin-jobs`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
