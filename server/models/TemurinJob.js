@@ -28,7 +28,7 @@ const testResultSchema = new mongoose.Schema({
   buildUrl: String,
   status: {
     type: String,
-    enum: ['SUCCESS', 'FAILURE', 'UNSTABLE', 'ABORTED', 'IN_PROGRESS'],
+    enum: ['SUCCESS', 'FAILURE', 'UNSTABLE', 'ABORTED', 'IN_PROGRESS', 'UNKNOWN'],
   },
   result: String,
   timestamp: Date,
@@ -51,7 +51,7 @@ const childJobSchema = new mongoose.Schema({
   buildUrl: String,
   status: {
     type: String,
-    enum: ['SUCCESS', 'FAILURE', 'UNSTABLE', 'ABORTED', 'IN_PROGRESS'],
+    enum: ['SUCCESS', 'FAILURE', 'UNSTABLE', 'ABORTED', 'IN_PROGRESS', 'UNKNOWN'],
   },
   result: String,
   timestamp: Date,
@@ -93,7 +93,7 @@ const temurinJobSchema = new mongoose.Schema({
   },
   mainStatus: {
     type: String,
-    enum: ['SUCCESS', 'FAILURE', 'UNSTABLE', 'ABORTED', 'IN_PROGRESS'],
+    enum: ['SUCCESS', 'FAILURE', 'UNSTABLE', 'ABORTED', 'IN_PROGRESS', 'UNKNOWN'],
     required: true,
   },
   mainResult: String,

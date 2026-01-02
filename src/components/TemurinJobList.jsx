@@ -1,18 +1,20 @@
 import { useState, useEffect } from 'react';
-import './JobList.css';
+import './TemurinJobList.css';
 
-function JobList() {
+function TemurinJobList() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState(null);
   const [filter, setFilter] = useState({
     status: '',
+    platform: '',
+    architecture: '',
     limit: 50,
   });
   const [sort, setSort] = useState({
-    column: 'buildNumber',
-    direction: 'desc', // 'asc' or 'desc'
+    column: 'mainBuildNumber',
+    direction: 'desc',
   });
 
   useEffect(() => {
@@ -25,19 +27,20 @@ function JobList() {
       setLoading(true);
       const params = new URLSearchParams();
       if (filter.status) params.append('status', filter.status);
+      if (filter.platform) params.append('platform', filter.platform);
+      if (filter.architecture) params.append('architecture', filter.architecture);
       params.append('limit', filter.limit);
       
-      // Build sort parameter: prefix with '-' for descending
       const sortParam = sort.direction === 'desc' ? `-${sort.column}` : sort.column;
       params.append('sort', sortParam);
 
-      const response = await fetch(`/api/jobs?${params.toString()}`);
+      const response = await fetch(`/api/temurin-jobs?${params.toString()}`);
       const data = await response.json();
 
       if (data.success) {
         setJobs(data.data);
       } else {
-        setError(data.error || 'Failed to fetch jobs');
+        setError(data.error || 'Failed to fetch temurin jobs');
       }
     } catch (err) {
       setError(err.message);
@@ -48,7 +51,7 @@ function JobList() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/jobs/stats/summary');
+      const response = await fetch('/api/temurin-jobs/stats/summary');
       const data = await response.json();
       if (data.success) {
         setStats(data.data);
@@ -98,10 +101,10 @@ function JobList() {
 
   const handleManualFetch = async () => {
     try {
-      const response = await fetch('/api/jobs/fetch', { method: 'POST' });
+      const response = await fetch('/api/temurin-jobs/fetch', { method: 'POST' });
       const data = await response.json();
       if (data.success) {
-        alert(`Fetch completed: ${data.result.fetched} new, ${data.result.skipped} existing`);
+        alert(`Fetch completed: ${data.result.fetched} new, ${data.result.skipped} existing, ${data.result.errors} errors`);
         fetchJobs();
         fetchStats();
       } else {
@@ -115,13 +118,11 @@ function JobList() {
   const handleSort = (column) => {
     setSort((prevSort) => {
       if (prevSort.column === column) {
-        // Toggle direction if clicking the same column
         return {
           column,
           direction: prevSort.direction === 'asc' ? 'desc' : 'asc',
         };
       } else {
-        // New column, default to descending
         return {
           column,
           direction: 'desc',
@@ -141,26 +142,40 @@ function JobList() {
     );
   };
 
+  const getTestResultsSummary = (testResults) => {
+    if (!testResults || testResults.length === 0) {
+      return 'No tests';
+    }
+    const passed = testResults.filter(tr => tr.status === 'SUCCESS').length;
+    const failed = testResults.filter(tr => tr.status === 'FAILURE').length;
+    const unstable = testResults.filter(tr => tr.status === 'UNSTABLE').length;
+    return `${passed} passed, ${failed} failed, ${unstable} unstable`;
+  };
+
   if (loading && jobs.length === 0) {
     return (
-      <div className="job-list-container">
-        <div className="loading">Loading build data...</div>
+      <div className="temurin-job-list-container">
+        <div className="loading">Loading temurin job data...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="job-list-container">
+      <div className="temurin-job-list-container">
         <div className="error">Error: {error}</div>
       </div>
     );
   }
 
+  // Get unique platforms and architectures for filters
+  const uniquePlatforms = [...new Set(jobs.map(j => j.platform).filter(Boolean))].sort();
+  const uniqueArchitectures = [...new Set(jobs.map(j => j.architecture).filter(Boolean))].sort();
+
   return (
-    <div className="job-list-container">
+    <div className="temurin-job-list-container">
       <div className="header">
-        <h1>OpenJDK Pipeline Builds</h1>
+        <h1>Temurin Build Jobs</h1>
         <div className="header-actions">
           <button onClick={handleRefresh} className="btn btn-secondary">
             Refresh
@@ -174,7 +189,7 @@ function JobList() {
       {stats && (
         <div className="stats">
           <div className="stat-card">
-            <div className="stat-label">Total Builds</div>
+            <div className="stat-label">Total Jobs</div>
             <div className="stat-value">{stats.totalJobs}</div>
           </div>
           <div className="stat-card">
@@ -194,6 +209,10 @@ function JobList() {
             <div className="stat-value" style={{ color: '#f59e0b' }}>
               {stats.statusCounts.UNSTABLE || 0}
             </div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label">Platforms</div>
+            <div className="stat-value">{Object.keys(stats.platformCounts || {}).length}</div>
           </div>
           <div className="stat-card">
             <div className="stat-label">Last Fetch</div>
@@ -219,13 +238,33 @@ function JobList() {
           <option value="UNKNOWN">Unknown</option>
         </select>
         <select
+          value={filter.platform}
+          onChange={(e) => setFilter({ ...filter, platform: e.target.value })}
+          className="filter-select"
+        >
+          <option value="">All Platforms</option>
+          {uniquePlatforms.map(platform => (
+            <option key={platform} value={platform}>{platform}</option>
+          ))}
+        </select>
+        <select
+          value={filter.architecture}
+          onChange={(e) => setFilter({ ...filter, architecture: e.target.value })}
+          className="filter-select"
+        >
+          <option value="">All Architectures</option>
+          {uniqueArchitectures.map(arch => (
+            <option key={arch} value={arch}>{arch}</option>
+          ))}
+        </select>
+        <select
           value={filter.limit}
           onChange={(e) => setFilter({ ...filter, limit: parseInt(e.target.value) })}
           className="filter-select"
         >
-          <option value="25">25 builds</option>
-          <option value="50">50 builds</option>
-          <option value="100">100 builds</option>
+          <option value="25">25 jobs</option>
+          <option value="50">50 jobs</option>
+          <option value="100">100 jobs</option>
         </select>
       </div>
 
@@ -235,38 +274,53 @@ function JobList() {
             <tr>
               <th 
                 className="sortable" 
-                onClick={() => handleSort('buildNumber')}
+                onClick={() => handleSort('mainJobName')}
+                title="Click to sort by Job Name"
+              >
+                Job Name {getSortIcon('mainJobName')}
+              </th>
+              <th 
+                className="sortable" 
+                onClick={() => handleSort('platform')}
+                title="Click to sort by Platform"
+              >
+                Platform {getSortIcon('platform')}
+              </th>
+              <th 
+                className="sortable" 
+                onClick={() => handleSort('architecture')}
+                title="Click to sort by Architecture"
+              >
+                Architecture {getSortIcon('architecture')}
+              </th>
+              <th 
+                className="sortable" 
+                onClick={() => handleSort('mainBuildNumber')}
                 title="Click to sort by Build Number"
               >
-                Build # {getSortIcon('buildNumber')}
+                Build # {getSortIcon('mainBuildNumber')}
               </th>
               <th 
                 className="sortable" 
-                onClick={() => handleSort('status')}
+                onClick={() => handleSort('mainStatus')}
                 title="Click to sort by Status"
               >
-                Status {getSortIcon('status')}
+                Status {getSortIcon('mainStatus')}
               </th>
               <th 
                 className="sortable" 
-                onClick={() => handleSort('duration')}
+                onClick={() => handleSort('mainDuration')}
                 title="Click to sort by Duration"
               >
-                Duration {getSortIcon('duration')}
+                Duration {getSortIcon('mainDuration')}
               </th>
+              <th>Test Results</th>
               <th 
                 className="sortable" 
-                onClick={() => handleSort('timestamp')}
+                onClick={() => handleSort('mainTimestamp')}
                 title="Click to sort by Timestamp"
               >
-                Timestamp {getSortIcon('timestamp')}
-              </th>
-              <th 
-                className="sortable" 
-                onClick={() => handleSort('fetchedAt')}
-                title="Click to sort by Fetched At"
-              >
-                Fetched At {getSortIcon('fetchedAt')}
+                Timestamp {getSortIcon('mainTimestamp')}
               </th>
               <th>Actions</th>
             </tr>
@@ -274,28 +328,39 @@ function JobList() {
           <tbody>
             {jobs.length === 0 ? (
               <tr>
-                <td colSpan="6" className="no-data">
-                  No builds found
+                <td colSpan="9" className="no-data">
+                  No temurin jobs found
                 </td>
               </tr>
             ) : (
               jobs.map((job) => (
                 <tr key={job._id}>
-                  <td className="build-number">#{job.buildNumber}</td>
+                  <td className="job-name">{job.mainJobName}</td>
+                  <td>{job.platform || 'N/A'}</td>
+                  <td>{job.architecture || 'N/A'}</td>
+                  <td className="build-number">#{job.mainBuildNumber}</td>
                   <td>
                     <span
                       className="status-badge"
-                      style={{ backgroundColor: getStatusColor(job.status) }}
+                      style={{ backgroundColor: getStatusColor(job.mainStatus) }}
                     >
-                      {job.status}
+                      {job.mainStatus}
                     </span>
                   </td>
-                  <td>{formatDuration(job.duration)}</td>
-                  <td className="timestamp">{formatDate(job.timestamp)}</td>
-                  <td className="timestamp">{formatDate(job.fetchedAt)}</td>
+                  <td>{formatDuration(job.mainDuration)}</td>
+                  <td className="test-results">
+                    {job.testResults && job.testResults.length > 0 ? (
+                      <span title={getTestResultsSummary(job.testResults)}>
+                        {job.testResults.length} tests
+                      </span>
+                    ) : (
+                      <span className="no-tests">No tests</span>
+                    )}
+                  </td>
+                  <td className="timestamp">{formatDate(job.mainTimestamp)}</td>
                   <td>
                     <a
-                      href={job.buildUrl}
+                      href={job.mainBuildUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="build-link"
@@ -313,5 +378,5 @@ function JobList() {
   );
 }
 
-export default JobList;
+export default TemurinJobList;
 

@@ -90,28 +90,57 @@ export const fetchJobBuildInfo = async (jobUrl, buildNumber) => {
 };
 
 /**
- * Finds related test jobs by searching for jobs with similar names
+ * Fetches console output from a Jenkins build
  */
-export const findRelatedTestJobs = async (mainJobName, jdk21uJobs) => {
-  // Extract base name (e.g., "jdk21u-linux-x64-temurin" from "jdk21u-linux-x64-temurin")
-  const baseName = mainJobName.replace(/_SmokeTests$/, '');
-  const testJobs = [];
+export const fetchConsoleOutput = async (jobUrl, buildNumber) => {
+  try {
+    const url = `${jobUrl}${buildNumber}/consoleText`;
+    console.log(`[HTTP Request] GET ${url}`);
+    const response = await axios.get(url, {
+      timeout: 30000,
+      headers: {
+        'Accept': 'text/plain',
+      },
+      responseType: 'text',
+    });
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching console output for ${jobUrl}${buildNumber}:`, error.message);
+    return null;
+  }
+};
 
-  for (const job of jdk21uJobs) {
-    // Look for test jobs that match the pattern: baseName + test pattern
-    // Examples: jdk21u-linux-x64-temurin_SmokeTests, jdk21u-linux-x64-temurin_sanity.openjdk, etc.
-    if (job.name.startsWith(baseName) && job.name !== mainJobName) {
-      if (job.lastBuild) {
+/**
+ * Parses console output to find test job references
+ * Looks for patterns like "Starting building: Test_openjdk21_hs_sanity.openjdk_x86-64_linux #368"
+ */
+export const parseTestJobsFromConsole = (consoleOutput) => {
+  if (!consoleOutput) {
+    return [];
+  }
+
+  const testJobs = [];
+  // Pattern to match: "Starting building: Test_openjdk21_hs_sanity.openjdk_x86-64_linux #368"
+  // Also matches variations like "Triggering: Test_..." or "Building: Test_..."
+  const patterns = [
+    /Starting building:\s*(Test_[^\s#]+)\s*#(\d+)/gi,
+    /Triggering:\s*(Test_[^\s#]+)\s*#(\d+)/gi,
+    /Building:\s*(Test_[^\s#]+)\s*#(\d+)/gi,
+    /Started building:\s*(Test_[^\s#]+)\s*#(\d+)/gi,
+  ];
+
+  for (const pattern of patterns) {
+    let match;
+    while ((match = pattern.exec(consoleOutput)) !== null) {
+      const testJobName = match[1].trim();
+      const buildNumber = parseInt(match[2], 10);
+      
+      // Avoid duplicates
+      const existing = testJobs.find(tj => tj.jobName === testJobName && tj.buildNumber === buildNumber);
+      if (!existing) {
         testJobs.push({
-          jobName: job.name,
-          jobUrl: job.url,
-          buildNumber: job.lastBuild.number,
-          buildUrl: job.lastBuild.url,
-          status: mapBuildStatus(job.lastBuild),
-          result: job.lastBuild.result || null,
-          timestamp: job.lastBuild.timestamp ? new Date(job.lastBuild.timestamp) : null,
-          duration: job.lastBuild.duration || null,
-          rawData: job.lastBuild,
+          jobName: testJobName,
+          buildNumber: buildNumber,
         });
       }
     }
@@ -121,71 +150,123 @@ export const findRelatedTestJobs = async (mainJobName, jdk21uJobs) => {
 };
 
 /**
- * Fetches child jobs (downstream jobs) for a build
- * In Jenkins, child jobs can be found through downstreamProjects or through the build's actions
+ * Fetches test job data from Jenkins
+ */
+export const fetchTestJobData = async (testJobName, buildNumber) => {
+  try {
+    // Construct the test job URL
+    // Test job names like "Test_openjdk21_hs_sanity.openjdk_x86-64_linux" 
+    // need to be URL encoded: "Test%5Fopenjdk21%5Fhs%5Fsanity.openjdk%5Fx86-64%5Flinux"
+    const encodedJobName = encodeURIComponent(testJobName);
+    const testJobUrl = `${JENKINS_BASE_URL}/job/${encodedJobName}/`;
+    
+    // Fetch build info with test report
+    const url = `${testJobUrl}${buildNumber}/api/json?tree=number,url,result,timestamp,duration,testReport[totalCount,skipCount,failCount,passCount,suites[*]]`;
+    console.log(`[HTTP Request] GET ${url}`);
+    const response = await axios.get(url, {
+      timeout: 30000,
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+
+    const buildData = response.data;
+    
+    return {
+      jobName: testJobName,
+      jobUrl: testJobUrl,
+      buildNumber: buildData.number,
+      buildUrl: buildData.url,
+      status: mapBuildStatus(buildData),
+      result: buildData.result || null,
+      timestamp: buildData.timestamp ? new Date(buildData.timestamp) : null,
+      duration: buildData.duration || null,
+      testReport: buildData.testReport || null,
+      rawData: buildData,
+    };
+  } catch (error) {
+    console.error(`Error fetching test job data for ${testJobName} #${buildNumber}:`, error.message);
+    // Return basic info even if detailed fetch fails
+    const encodedJobName = encodeURIComponent(testJobName);
+    const testJobUrl = `${JENKINS_BASE_URL}/job/${encodedJobName}/`;
+    return {
+      jobName: testJobName,
+      jobUrl: testJobUrl,
+      buildNumber: buildNumber,
+      buildUrl: `${testJobUrl}${buildNumber}/`,
+      status: 'UNKNOWN',
+      result: null,
+      timestamp: null,
+      duration: null,
+      testReport: null,
+      rawData: null,
+    };
+  }
+};
+
+/**
+ * Fetches child jobs (test jobs) by parsing console output
+ * This is the primary method for finding test jobs triggered by the temurin build
  */
 export const fetchChildJobs = async (jobUrl, buildNumber, mainJobName, allJdk21uJobs) => {
   try {
     const childJobs = [];
 
-    // First, try to get downstream projects from the job itself
-    const jobInfoUrl = `${jobUrl}api/json?tree=downstreamProjects[name,url,lastBuild[number,url,result,timestamp,duration]]`;
-    console.log(`[HTTP Request] GET ${jobInfoUrl}`);
-    const jobInfoResponse = await axios.get(jobInfoUrl, {
-      timeout: 30000,
-      headers: { 'Accept': 'application/json' },
-    }).catch(() => null);
+    // Fetch console output to find test job references
+    const consoleOutput = await fetchConsoleOutput(jobUrl, buildNumber);
+    const testJobRefs = parseTestJobsFromConsole(consoleOutput);
 
-    // Get downstream projects if available
-    if (jobInfoResponse?.data?.downstreamProjects) {
-      for (const downstream of jobInfoResponse.data.downstreamProjects) {
-        if (downstream.lastBuild) {
+    console.log(`Found ${testJobRefs.length} test job references in console output`);
+
+    // Fetch data for each test job found in console
+    for (const testJobRef of testJobRefs) {
+      try {
+        const testJobData = await fetchTestJobData(testJobRef.jobName, testJobRef.buildNumber);
+        if (testJobData) {
           childJobs.push({
-            jobName: downstream.name,
-            jobUrl: downstream.url,
-            buildNumber: downstream.lastBuild.number,
-            buildUrl: downstream.lastBuild.url,
-            status: mapBuildStatus(downstream.lastBuild),
-            result: downstream.lastBuild.result || null,
-            timestamp: downstream.lastBuild.timestamp ? new Date(downstream.lastBuild.timestamp) : null,
-            duration: downstream.lastBuild.duration || null,
-            rawData: downstream.lastBuild,
+            jobName: testJobData.jobName,
+            jobUrl: testJobData.jobUrl,
+            buildNumber: testJobData.buildNumber,
+            buildUrl: testJobData.buildUrl,
+            status: testJobData.status,
+            result: testJobData.result,
+            timestamp: testJobData.timestamp,
+            duration: testJobData.duration,
+            rawData: {
+              ...testJobData.rawData,
+              testReport: testJobData.testReport, // Ensure testReport is included
+            },
           });
         }
+      } catch (error) {
+        console.error(`Error fetching test job ${testJobRef.jobName} #${testJobRef.buildNumber}:`, error.message);
       }
     }
 
-    // Also try to get runs from the build info
-    const buildInfo = await fetchJobBuildInfo(jobUrl, buildNumber);
-    if (buildInfo?.runs) {
-      for (const run of buildInfo.runs) {
-        if (run.url && run.result !== undefined) {
-          // Avoid duplicates
-          const existing = childJobs.find(cj => cj.jobUrl === run.url);
-          if (!existing) {
+    // Fallback: Also try to get downstream projects from the job itself
+    if (childJobs.length === 0) {
+      const jobInfoUrl = `${jobUrl}api/json?tree=downstreamProjects[name,url,lastBuild[number,url,result,timestamp,duration]]`;
+      console.log(`[HTTP Request] GET ${jobInfoUrl}`);
+      const jobInfoResponse = await axios.get(jobInfoUrl, {
+        timeout: 30000,
+        headers: { 'Accept': 'application/json' },
+      }).catch(() => null);
+
+      if (jobInfoResponse?.data?.downstreamProjects) {
+        for (const downstream of jobInfoResponse.data.downstreamProjects) {
+          if (downstream.lastBuild) {
             childJobs.push({
-              jobName: run.url.split('/job/').pop().replace(/\//g, ''),
-              jobUrl: run.url,
-              buildNumber: run.number,
-              buildUrl: run.url,
-              status: mapBuildStatus(run),
-              result: run.result || null,
-              timestamp: run.timestamp ? new Date(run.timestamp) : null,
-              duration: run.duration || null,
-              rawData: run,
+              jobName: downstream.name,
+              jobUrl: downstream.url,
+              buildNumber: downstream.lastBuild.number,
+              buildUrl: downstream.lastBuild.url,
+              status: mapBuildStatus(downstream.lastBuild),
+              result: downstream.lastBuild.result || null,
+              timestamp: downstream.lastBuild.timestamp ? new Date(downstream.lastBuild.timestamp) : null,
+              duration: downstream.lastBuild.duration || null,
+              rawData: downstream.lastBuild,
             });
           }
-        }
-      }
-    }
-
-    // Also search for related test jobs by name pattern
-    if (allJdk21uJobs && mainJobName) {
-      const relatedTestJobs = await findRelatedTestJobs(mainJobName, allJdk21uJobs);
-      for (const testJob of relatedTestJobs) {
-        const existing = childJobs.find(cj => cj.jobUrl === testJob.jobUrl);
-        if (!existing) {
-          childJobs.push(testJob);
         }
       }
     }
@@ -237,49 +318,72 @@ export const fetchTestResults = async (testJobUrl, buildNumber) => {
 };
 
 /**
+ * Identifies test type from test job name
+ * Test job names like "Test_openjdk21_hs_sanity.openjdk_x86-64_linux" contain the test type
+ */
+export const identifyTestTypeFromTestJob = (testJobName) => {
+  const lowerName = testJobName.toLowerCase();
+  
+  // Map test job patterns to test types
+  const testTypeMap = {
+    'smoke': 'smoke test',
+    'sanity.openjdk': 'sanity.openjdk',
+    'sanity.system': 'sanity.system',
+    'extended.system': 'extended.system',
+    'sanity.perf': 'sanity.perf',
+    'sanity.functional': 'sanity.functional',
+    'extended.functional': 'extended.functional',
+    'extended.openjdk': 'extended.openjdk',
+    'extended.perf': 'extended.perf',
+    'special.functional': 'special.functional',
+    'special.openjdk': 'special.openjdk',
+    'dev.functional': 'dev.functional',
+    'special.jck': 'special.jck',
+    'sanity.jck': 'sanity.jck',
+    'extended.jck': 'extended.jck',
+  };
+
+  for (const [pattern, testType] of Object.entries(testTypeMap)) {
+    if (lowerName.includes(pattern.replace('.', '')) || lowerName.includes(pattern.replace('.', '_'))) {
+      return testType;
+    }
+  }
+
+  return null;
+};
+
+/**
  * Extracts test results from child jobs
+ * Child jobs are already fetched with test data, so we just need to identify the test type
  */
 export const extractTestResults = async (childJobs) => {
   const testResults = [];
 
   for (const childJob of childJobs) {
-    const testType = identifyTestType(childJob.jobName);
+    // Identify test type from the test job name
+    const testType = identifyTestTypeFromTestJob(childJob.jobName);
     if (!testType) {
+      // Skip if we can't identify the test type
       continue;
     }
 
-    try {
-      const testData = await fetchTestResults(childJob.jobUrl, childJob.buildNumber);
-      testResults.push({
-        testType,
-        jobName: childJob.jobName,
-        jobUrl: childJob.jobUrl,
-        buildNumber: childJob.buildNumber,
-        buildUrl: childJob.buildUrl,
-        status: childJob.status,
-        result: childJob.result,
-        timestamp: childJob.timestamp,
-        duration: childJob.duration,
-        testResults: testData?.testReport || null,
-        rawData: testData,
-      });
-    } catch (error) {
-      console.error(`Error extracting test results for ${childJob.jobName}:`, error.message);
-      // Still add the test job even if we couldn't fetch detailed results
-      testResults.push({
-        testType,
-        jobName: childJob.jobName,
-        jobUrl: childJob.jobUrl,
-        buildNumber: childJob.buildNumber,
-        buildUrl: childJob.buildUrl,
-        status: childJob.status,
-        result: childJob.result,
-        timestamp: childJob.timestamp,
-        duration: childJob.duration,
-        testResults: null,
-        rawData: childJob.rawData,
-      });
-    }
+    // Extract test report from the raw data if available
+    // The testReport contains: totalCount, skipCount, failCount, passCount, suites
+    const testReport = childJob.rawData?.testReport || null;
+
+    testResults.push({
+      testType,
+      jobName: childJob.jobName,
+      jobUrl: childJob.jobUrl,
+      buildNumber: childJob.buildNumber,
+      buildUrl: childJob.buildUrl,
+      status: childJob.status,
+      result: childJob.result,
+      timestamp: childJob.timestamp,
+      duration: childJob.duration,
+      testResults: testReport,
+      rawData: childJob.rawData,
+    });
   }
 
   return testResults;

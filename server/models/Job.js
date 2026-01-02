@@ -20,7 +20,7 @@ const jobSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['SUCCESS', 'FAILURE', 'UNSTABLE', 'ABORTED', 'IN_PROGRESS'],
+    enum: ['SUCCESS', 'FAILURE', 'UNSTABLE', 'ABORTED', 'IN_PROGRESS', 'UNKNOWN'],
     required: true,
   },
   timestamp: {
